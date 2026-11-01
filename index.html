@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f5f7ff">
+  <title>Mi lista de tareas</title>
+  <style>
+    :root { color-scheme: light; --ink:#252943; --muted:#777d96; --purple:#7167e8; --line:#ececf4; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; padding:48px 18px; font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif; color:var(--ink); background:linear-gradient(135deg,#f4f5ff,#fdf6fb 55%,#eef9f7); }
+    .app { width:min(100%,620px); margin:0 auto; }
+    .eyebrow { color:var(--purple); font-size:.78rem; font-weight:800; letter-spacing:.13em; text-transform:uppercase; }
+    h1 { margin:8px 0 8px; font-size:clamp(2rem,6vw,2.8rem); letter-spacing:-.045em; }
+    .subtitle { margin:0 0 28px; color:var(--muted); }
+    .panel { padding:26px; background:#fff; border:1px solid rgba(230,230,242,.9); border-radius:22px; box-shadow:0 18px 55px rgba(48,49,90,.09); }
+    form { display:flex; gap:10px; }
+    input { min-width:0; flex:1; padding:14px 15px; border:1px solid #dedfee; border-radius:12px; outline:none; font:inherit; color:var(--ink); }
+    input:focus { border-color:var(--purple); box-shadow:0 0 0 3px rgba(113,103,232,.13); }
+    button { border:0; border-radius:12px; padding:12px 17px; background:var(--purple); color:white; font:inherit; font-weight:700; cursor:pointer; transition:transform .15s,opacity .15s; }
+    button:hover { opacity:.9; transform:translateY(-1px); }
+    button:focus-visible, input:focus-visible { outline:3px solid rgba(113,103,232,.35); outline-offset:2px; }
+    .toolbar { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:23px 0 13px; flex-wrap:wrap; }
+    .count { color:var(--muted); font-size:.9rem; }
+    .filters { display:flex; gap:5px; padding:4px; background:#f4f4fa; border-radius:11px; }
+    .filters button { padding:8px 11px; background:transparent; color:var(--muted); font-size:.83rem; }
+    .filters button[aria-pressed="true"] { background:white; color:var(--purple); box-shadow:0 2px 7px #25294312; }
+    ul { list-style:none; padding:0; margin:0; }
+    li { display:flex; align-items:center; gap:12px; padding:14px 3px; border-bottom:1px solid var(--line); }
+    li:last-child { border-bottom:0; }
+    .task-check { width:19px; height:19px; flex:none; accent-color:var(--purple); cursor:pointer; }
+    .task-text { flex:1; overflow-wrap:anywhere; }
+    li.done .task-text { color:#a1a4b5; text-decoration:line-through; }
+    .delete { padding:7px 10px; background:transparent; color:#a0a2b4; font-size:1.1rem; }
+    .delete:hover { color:#d34f69; background:#fff0f2; }
+    .empty { padding:32px 12px; text-align:center; color:var(--muted); }
+    .footer { display:flex; justify-content:flex-end; margin-top:14px; }
+    .clear { padding:7px 0; background:transparent; color:var(--muted); font-size:.85rem; }
+    .clear:hover { color:#d34f69; }
+    .tip { margin:18px 0 0; text-align:center; color:#9296aa; font-size:.82rem; }
+    @media(max-width:480px) { body{padding:30px 14px} .panel{padding:19px} form{flex-direction:column} form button{width:100%} .toolbar{align-items:flex-start;flex-direction:column} }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <div class="eyebrow">Organiza tu día</div>
+    <h1>Mi lista de tareas <span aria-hidden="true">✦</span></h1>
+    <p class="subtitle">Pequeños pasos también cuentan. ¿Qué necesitas hacer hoy?</p>
+    <section class="panel" aria-label="Lista de tareas">
+      <form id="task-form">
+        <input id="task-input" type="text" maxlength="120" placeholder="Escribe una nueva tarea..." aria-label="Nueva tarea" autocomplete="off" required>
+        <button type="submit">+ Agregar</button>
+      </form>
+      <div class="toolbar">
+        <span class="count" id="count" aria-live="polite">0 tareas pendientes</span>
+        <div class="filters" role="group" aria-label="Filtrar tareas">
+          <button type="button" data-filter="all" aria-pressed="true">Todas</button>
+          <button type="button" data-filter="active" aria-pressed="false">Pendientes</button>
+          <button type="button" data-filter="done" aria-pressed="false">Hechas</button>
+        </div>
+      </div>
+      <ul id="task-list"></ul>
+      <div class="footer"><button class="clear" id="clear-done" type="button">Eliminar tareas hechas</button></div>
+    </section>
+    <p class="tip">Tus tareas se guardan automáticamente en este navegador.</p>
+  </main>
+  <script>
+    const STORAGE_KEY = "hola-mundo-todo-tasks";
+    const form = document.getElementById("task-form");
+    const input = document.getElementById("task-input");
+    const list = document.getElementById("task-list");
+    const count = document.getElementById("count");
+    const filterButtons = document.querySelectorAll("[data-filter]");
+    let tasks = loadTasks();
+    let currentFilter = "all";
+
+    function loadTasks() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+        return Array.isArray(saved) ? saved.filter(t => t && typeof t.text === "string") : [];
+      } catch { return []; }
+    }
+
+    function saveTasks() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+    }
+
+    function renderTasks() {
+      list.replaceChildren();
+      const visibleTasks = tasks.filter(task =>
+        currentFilter === "all" || (currentFilter === "active" && !task.done) || (currentFilter === "done" && task.done)
+      );
+      const pending = tasks.filter(task => !task.done).length;
+      count.textContent = pending === 1 ? "1 tarea pendiente" : pending + " tareas pendientes";
+
+      if (visibleTasks.length === 0) {
+        const empty = document.createElement("li");
+        empty.className = "empty";
+        empty.textContent = tasks.length === 0 ? "Aún no tienes tareas. ¡Agrega la primera!" : "No hay tareas en esta sección.";
+        list.appendChild(empty);
+      }
+
+      visibleTasks.forEach(task => {
+        const item = document.createElement("li");
+        if (task.done) item.classList.add("done");
+
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.className = "task-check";
+        checkbox.checked = task.done;
+        checkbox.setAttribute("aria-label", "Marcar como " + (task.done ? "pendiente" : "hecha"));
+        checkbox.addEventListener("change", () => {
+          task.done = checkbox.checked;
+          saveTasks();
+          renderTasks();
+        });
+
+        const text = document.createElement("span");
+        text.className = "task-text";
+        text.textContent = task.text;
+
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.className = "delete";
+        remove.textContent = "×";
+        remove.setAttribute("aria-label", "Eliminar tarea: " + task.text);
+        remove.addEventListener("click", () => {
+          tasks = tasks.filter(t => t.id !== task.id);
+          saveTasks();
+          renderTasks();
+        });
+
+        item.append(checkbox, text, remove);
+        list.appendChild(item);
+      });
+
+      filterButtons.forEach(button => button.setAttribute("aria-pressed", String(button.dataset.filter === currentFilter)));
+    }
+
+    form.addEventListener("submit", event => {
+      event.preventDefault();
+      const text = input.value.trim();
+      if (!text) return;
+      tasks.unshift({ id: (globalThis.crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now() + Math.random()), text, done: false });
+      saveTasks();
+      input.value = "";
+      renderTasks();
+      input.focus();
+    });
+
+    filterButtons.forEach(button => button.addEventListener("click", () => {
+      currentFilter = button.dataset.filter;
+      renderTasks();
+    }));
+
+    document.getElementById("clear-done").addEventListener("click", () => {
+      tasks = tasks.filter(task => !task.done);
+      saveTasks();
+      renderTasks();
+    });
+
+    renderTasks();
+  </script>
+</body>
+</html>
