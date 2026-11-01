@@ -1,41 +1,40 @@
 # ¡Hola, mundo! 👋
 
-¡Bienvenido(a) a este repositorio!
+¡Bienvenido(a) a este repositorio! Este proyecto reúne ejemplos y prácticas para aprender desarrollo de software.
 
-Este proyecto es un espacio de práctica y aprendizaje para explorar conceptos básicos de programación y desarrollo de software.
+## 📝 Aplicación To-Do List
 
-## 📌 Acerca del proyecto
+Se incluye una aplicación web sencilla para organizar tareas desde el navegador.
 
-El repositorio **Hola-Mundo** sirve como punto de partida para realizar pruebas, experimentar con código y familiarizarse con el uso de Git y GitHub.
+### Funciones
+- Agregar nuevas tareas.
+- Marcar tareas como completadas o pendientes.
+- Filtrar entre todas, pendientes y hechas.
+- Eliminar tareas individuales o todas las que ya se completaron.
+- Guardar las tareas automáticamente en el navegador mediante `localStorage`.
 
-## 🚀 Objetivos
+### Tecnologías
+- HTML
+- CSS
+- JavaScript
 
-- Practicar los fundamentos de la programación.
-- Conocer la estructura de un repositorio.
-- Aprender a crear, modificar y guardar cambios.
-- Compartir avances y ejercicios de aprendizaje.
+### Cómo ejecutarla
+1. Descarga o clona este repositorio.
+2. Abre el archivo `index.html` en tu navegador.
+3. Escribe una tarea y presiona **Agregar**.
 
-## 🛠️ Tecnologías
+No necesita instalar dependencias ni configurar un servidor.
 
-Las tecnologías utilizadas dependerán de los archivos y ejercicios que se agreguen al proyecto.
-
-## 📂 Contenido
-
-En este repositorio se podrán encontrar programas, ejemplos y otros recursos relacionados con las prácticas de aprendizaje.
-
-## ▶️ Uso
-
-1. Clona o descarga este repositorio.
-2. Abre los archivos con el editor o entorno de desarrollo de tu preferencia.
-3. Ejecuta los ejemplos siguiendo las indicaciones correspondientes a cada tecnología.
+### Publicarla con GitHub Pages
+1. Entra a **Settings** del repositorio.
+2. Abre la sección **Pages**.
+3. En **Build and deployment**, selecciona **Deploy from a branch**.
+4. Elige la rama `main` y la carpeta `/ (root)`, y guarda los cambios.
+5. Cuando GitHub termine la publicación, mostrará ahí la dirección del sitio.
 
 ## 🤝 Contribuciones
 
-Este proyecto puede seguir creciendo con nuevas ideas, ejercicios y mejoras. ¡Toda aportación para aprender y mejorar es bienvenida!
-
-## 📄 Licencia
-
-No se ha especificado una licencia para este proyecto.
+Puedes proponer mejoras, agregar ejercicios o adaptar la aplicación para seguir practicando.
 
 ---
 
